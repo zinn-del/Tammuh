@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tammuh{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <div class="logo">
+                <h1>tammuh</h1>
+            </div>
+            <div class="nav-tabs">
+                <a href="{{ url_for('dashboard') }}" class="nav-tab {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('vision_board') }}" class="nav-tab {% if request.endpoint == 'vision_board' %}active{% endif %}">Vision Board</a>
+                <a href="#" class="nav-tab">Vaults</a>
+                <a href="#" class="nav-tab">Card</a>
+                <a href="#" class="nav-tab">Reports</a>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
+"""

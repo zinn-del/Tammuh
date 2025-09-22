@@ -1,0 +1,113 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Tammuh{% endblock %}
+
+{% block content %}
+    <div class="motivation-quote">
+        <span class="quote-icon">⭐</span>
+        <div class="quote-text">
+            <h3>"Every pound saved is a step towards freedom."</h3>
+            <p>Keep going, you're amazing! 💪</p>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>Total Savings</h4>
+            <div class="stat-value">£{{ total_savings or 0 }}</div>
+        </div>
+        <div class="stat-card">
+            <h4>Active Goals</h4>
+            <div class="stat-value">{{ active_goals or 0 }}</div>
+        </div>
+        <div class="stat-card">
+            <h4>This Month</h4>
+            <div class="stat-value orange">+ £{{ this_month or 250 }}</div>
+        </div>
+    </div>
+
+    <div class="dashboard-sections">
+        <div class="vision-board-preview">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="section-icon">👁</span>
+                    <h3>Your Vision Board</h3>
+                </div>
+                <a href="{{ url_for('vision_board') }}" class="view-full-link">View Full Board</a>
+            </div>
+            <div class="vision-preview-content">
+                {% if goals %}
+                    <!-- Show preview of dreams -->
+                    <div class="dreams-preview">
+                        {% for goal in goals[:3] %}
+                            <div class="dream-preview-card">
+                                <h4>{{ goal.title }}</h4>
+                                <p>£{{ goal.saved_amount }} / £{{ goal.target_amount }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No dreams added yet</p>
+                        <a href="{{ url_for('vision_board') }}" class="add-dream-btn">Add Your First Dream</a>
+                    </div>
+                {% endif %}
+                <div class="vision-board-tip">
+                    <span class="tip-icon">✨</span>
+                    <p>Click on any goal or "View Full Board" to customize your vision board</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="spending-insights">
+            <h3><span class="section-icon">📈</span> Spending Insights</h3>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span>Habit spending (last 10 days)</span>
+                </div>
+                <div class="insight-amount">£23.20</div>
+                <div class="insight-projection">~£847/year projected</div>
+            </div>
+            
+            <h4><span class="section-icon">📈</span> Spending Patterns Detected</h4>
+            <div class="pattern-item">
+                <div class="pattern-icon">☕</div>
+                <div class="pattern-details">
+                    <div class="pattern-name">Gong Cha</div>
+                    <div class="pattern-frequency">5 times • £4.64 avg</div>
+                </div>
+                <div class="pattern-cost">
+                    <div class="monthly-cost">£70/month</div>
+                    <div class="yearly-projection">£847/year projected</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="goal-progress">
+            <h3><span class="section-icon">🎯</span> Goal Progress</h3>
+            {% if goals %}
+                {% for goal in goals %}
+                    <div class="goal-progress-item">
+                        <div class="goal-info">
+                            <h4>{{ goal.title }}</h4>
+                            <div class="progress-bar">
+                               style="width: {{ (goal.saved_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0 }}%"
+                            </div>
+                            <p>£{{ goal.saved_amount }} / £{{ goal.target_amount }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No dreams to track yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <a href="{{ url_for('vision_board') }}" class="action-btn primary">Add New Goal</a>
+        <a href="{{ url_for('logout') }}" class="action-btn secondary">Logout</a>
+    </div>
+{% endblock %}

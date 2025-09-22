@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Vision Board - Tammuh{% endblock %}
+
+{% block content %}
+    <div class="vision-board-header">
+        <div class="page-title">
+            <h1>Your Vision Board</h1>
+            <p>Transform your dreams into reality through visual motivation</p>
+        </div>
+        <button class="add-dream-btn" onclick="showCreateDreamForm()">
+            <span>+</span> Add Dream
+        </button>
+    </div>
+
+    {% if goals %}
+        <div class="dreams-simple-container">
+            {% for goal in goals %}
+                <div class="dream-simple-card">
+                    <!-- Simple image placeholder for now -->
+                    <div class="dream-simple-images">
+                        <div class="simple-placeholder">
+                            <span class="simple-icon">💭</span>
+                            <p>{{ goal.title }}</p>
+                        </div>
+                        
+                        <!-- Control buttons -->
+                        <div class="simple-controls">
+                            <button class="simple-control-btn" onclick="deleteDream({{ goal.id }})">✕</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Content section -->
+                    <div class="dream-simple-content">
+                        <h2>{{ goal.title }}</h2>
+                        
+                        <div class="simple-progress">
+                            <div class="simple-amount">
+                                £{{ goal.saved_amount|int }} / £{{ goal.target_amount|int }}
+                            </div>
+                            
+                            {% set progress = ((goal.saved_amount / goal.target_amount) * 100)|round if goal.target_amount > 0 else 0 %}
+                            <div class="simple-percentage">{{ progress|int }}% complete</div>
+                            
+                            <div class="simple-message">
+                                You've saved £{{ goal.saved_amount|int }} of your £{{ goal.target_amount|int }} {{ goal.title.lower() }}!
+                            </div>
+                            
+                            {% set remaining = goal.target_amount - goal.saved_amount %}
+                            {% if remaining > 0 %}
+                                <div class="simple-remaining">
+                                    £{{ remaining|int }} remaining to reach your dream
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Quick add money -->
+                        <div class="simple-actions">
+                            <button class="simple-add-btn" onclick="showAddMoneyForm({{ goal.id }}, '{{ goal.title }}')">
+                                Add Money
+                            </button>
+                            <div class="simple-quick-amounts">
+                                <button onclick="quickAdd({{ goal.id }}, 5)">£5</button>
+                                <button onclick="quickAdd({{ goal.id }}, 10)">£10</button>
+                                <button onclick="quickAdd({{ goal.id }}, 25)">£25</button>
+                                <button onclick="quickAdd({{ goal.id }}, 50)">£50</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-vision-board">
+            <div class="empty-icon">💎</div>
+            <h2>Start Your Vision Board</h2>
+            <p>Create your first dream to begin visualizing and saving for your goals</p>
+            <button class="add-first-dream-btn" onclick="showCreateDreamForm()">
+                <span>+</span> Add Your First Dream
+            </button>
+        </div>
+    {% endif %}
+
+    <!-- Simple Create Dream Modal -->
+    <div id="createDreamModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Your New Dream</h2>
+                <button class="close-btn" onclick="hideCreateDreamForm()">&times;</button>
+            </div>
+            <form method="POST" action="{{ url_for('dashboard') }}">
+                <div class="form-group">
+                    <label>Dream Title *</label>
+                    <input type="text" name="title" placeholder="e.g., Turkey trip" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Target Amount (£) *</label>
+                    <input type="number" step="0.01" name="target_amount" placeholder="e.g., 3000" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit">Create Dream</button>
+                    <button type="button" onclick="hideCreateDreamForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div id="addMoneyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Money to <span id="goalTitle"></span></h2>
+                <button class="close-btn" onclick="hideAddMoneyForm()">&times;</button>
+            </div>
+            <form method="POST" id="addMoneyForm">
+                <div class="form-group">
+                    <label>Amount (£) *</label>
+                    <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit">Add Money</button>
+                    <button type="button" onclick="hideAddMoneyForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showCreateDreamForm() {
+            document.getElementById('createDreamModal').style.display = 'flex';
+        }
+        
+        function hideCreateDreamForm() {
+            document.getElementById('createDreamModal').style.display = 'none';
+        }
+
+        function showAddMoneyForm(goalId, goalTitle) {
+            document.getElementById('goalTitle').textContent = goalTitle;
+            document.getElementById('addMoneyForm').action = `/add_money/${goalId}`;
+            document.getElementById('addMoneyModal').style.display = 'flex';
+        }
+
+        function hideAddMoneyForm() {
+            document.getElementById('addMoneyModal').style.display = 'none';
+        }
+
+        function quickAdd(goalId, amount) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/add_money/${goalId}`;
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'amount';
+            input.value = amount;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function deleteDream(goalId) {
+            if (confirm('Delete this dream?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/delete_goal/${goalId}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+{% endblock %}
