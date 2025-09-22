@@ -36,27 +36,29 @@
                         
                         <div class="simple-progress">
                             <div class="simple-amount">
-                                £{{ goal.saved_amount|int }} / £{{ goal.target_amount|int }}
+                                £{{ "%.2f"|format(goal.saved_amount|default(0)|float) }} / £{{ "%.2f"|format(goal.target_amount|default(0)|float) }}
                             </div>
                             
-                            {% set progress = ((goal.saved_amount / goal.target_amount) * 100)|round if goal.target_amount > 0 else 0 %}
+                            {% set target_amount = goal.target_amount|default(0)|float %}
+                            {% set saved_amount = goal.saved_amount|default(0)|float %}
+                            {% set progress = ((saved_amount / target_amount) * 100)|round(0) if target_amount else 0 %}
                             <div class="simple-percentage">{{ progress|int }}% complete</div>
                             
                             <div class="simple-message">
-                                You've saved £{{ goal.saved_amount|int }} of your £{{ goal.target_amount|int }} {{ goal.title.lower() }}!
+                                You've saved £{{ "%.2f"|format(goal.saved_amount|default(0)|float) }} of your £{{ "%.2f"|format(goal.target_amount|default(0)|float) }} {{ goal.title|lower }}!
                             </div>
                             
-                            {% set remaining = goal.target_amount - goal.saved_amount %}
+                            {% set remaining = (goal.target_amount|default(0)|float) - (goal.saved_amount|default(0)|float) %}
                             {% if remaining > 0 %}
                                 <div class="simple-remaining">
-                                    £{{ remaining|int }} remaining to reach your dream
+                                    £{{ "%.2f"|format(remaining|float) }} remaining to reach your dream
                                 </div>
                             {% endif %}
                         </div>
                         
                         <!-- Quick add money -->
                         <div class="simple-actions">
-                            <button class="simple-add-btn" onclick="showAddMoneyForm({{ goal.id }}, '{{ goal.title }}')">
+                            <button class="simple-add-btn" onclick="showAddMoneyForm({{ goal.id }}, {{ goal.title|tojson }})">
                                 Add Money
                             </button>
                             <div class="simple-quick-amounts">
@@ -88,7 +90,8 @@
                 <h2>Create Your New Dream</h2>
                 <button class="close-btn" onclick="hideCreateDreamForm()">&times;</button>
             </div>
-            <form method="POST" action="{{ url_for('dashboard') }}">
+            <form method="POST" action="{{ url_for('create_dream') }}">
+                
                 <div class="form-group">
                     <label>Dream Title *</label>
                     <input type="text" name="title" placeholder="e.g., Turkey trip" required>
@@ -129,6 +132,10 @@
     </div>
 
     <script>
+        const addMoneyUrlTemplate = "{{ url_for('add_money', goal_id=999999) }}";
+        const deleteGoalUrlTemplate = "{{ url_for('delete_goal', goal_id=999999) }}";
+        function buildAddMoneyUrl(goalId) { return addMoneyUrlTemplate.replace('999999', String(goalId)); }
+        function buildDeleteGoalUrl(goalId) { return deleteGoalUrlTemplate.replace('999999', String(goalId)); }
         function showCreateDreamForm() {
             document.getElementById('createDreamModal').style.display = 'flex';
         }
@@ -139,7 +146,7 @@
 
         function showAddMoneyForm(goalId, goalTitle) {
             document.getElementById('goalTitle').textContent = goalTitle;
-            document.getElementById('addMoneyForm').action = `/add_money/${goalId}`;
+            document.getElementById('addMoneyForm').action = buildAddMoneyUrl(goalId);
             document.getElementById('addMoneyModal').style.display = 'flex';
         }
 
@@ -150,7 +157,7 @@
         function quickAdd(goalId, amount) {
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/add_money/${goalId}`;
+            form.action = buildAddMoneyUrl(goalId);
             
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -166,7 +173,7 @@
             if (confirm('Delete this dream?')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/delete_goal/${goalId}`;
+                form.action = buildDeleteGoalUrl(goalId);
                 document.body.appendChild(form);
                 form.submit();
             }
